@@ -25,24 +25,26 @@ func TestPackReturns200(t *testing.T) {
 func TestPackCalculatesPacks(t *testing.T) {
 	tests := []struct {
 		name     string
+		sizes    []int
 		quantity int
 		want     map[int]int
 	}{
-		{"quantity 1 rounds up to one 250", 1, map[int]int{250: 1}},
-		{"quantity 250 fits exactly in one 250", 250, map[int]int{250: 1}},
-		{"quantity 251 rounds up to one 500", 251, map[int]int{500: 1}},
-		{"quantity 501 combines a 500 and a 250", 501, map[int]int{500: 1, 250: 1}},
-		{"quantity 751 rounds up to one 1000", 751, map[int]int{1000: 1}},
-		{"quantity 1751 rounds up to one 2000", 1751, map[int]int{2000: 1}},
-		{"quantity 4751 rounds up to one 5000", 4751, map[int]int{5000: 1}},
-		{"quantity 12001 combines two 5000s, a 2000 and a 250", 12001, map[int]int{5000: 2, 2000: 1, 250: 1}},
+		{"quantity 1 rounds up to one 250", challengeSizes, 1, map[int]int{250: 1}},
+		{"quantity 250 fits exactly in one 250", challengeSizes, 250, map[int]int{250: 1}},
+		{"quantity 251 rounds up to one 500", challengeSizes, 251, map[int]int{500: 1}},
+		{"quantity 501 combines a 500 and a 250", challengeSizes, 501, map[int]int{500: 1, 250: 1}},
+		{"quantity 751 rounds up to one 1000", challengeSizes, 751, map[int]int{1000: 1}},
+		{"quantity 1751 rounds up to one 2000", challengeSizes, 1751, map[int]int{2000: 1}},
+		{"quantity 4751 rounds up to one 5000", challengeSizes, 4751, map[int]int{5000: 1}},
+		{"quantity 12001 combines two 5000s, a 2000 and a 250", challengeSizes, 12001, map[int]int{5000: 2, 2000: 1, 250: 1}},
+		{"non-multiple sizes 4 and 5 for quantity 7 use two 4s", []int{4, 5}, 7, map[int]int{4: 2}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
 
-			handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, tt.quantity))
+			handler(tt.sizes).ServeHTTP(rec, newPackRequest(t, tt.quantity))
 
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
