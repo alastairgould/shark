@@ -71,6 +71,23 @@ func TestPackForQuantityOf501Returns500And250Packs(t *testing.T) {
 	}
 }
 
+func TestPackForQuantityOf751ReturnsSingle1000Pack(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	handler().ServeHTTP(rec, newPackRequest(t, 751))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	got := decodePackResponse(t, rec.Body)
+
+	want := packResponse{Packs: map[int]int{1000: 1}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+	}
+}
+
 // newPackRequest builds a POST /pack request with the given quantity as its JSON body.
 func newPackRequest(t *testing.T, quantity int) *http.Request {
 	t.Helper()
