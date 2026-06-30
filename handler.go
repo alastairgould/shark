@@ -15,21 +15,41 @@ type packResponse struct {
 	Packs map[int]int `json:"packs"`
 }
 
+type problemDetail struct {
+	Type   string `json:"type"`
+	Title  string `json:"title"`
+	Status int    `json:"status"`
+	Detail string `json:"detail"`
+}
+
+func writeProblem(w http.ResponseWriter, status int, detail string) {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(problemDetail{
+		Type:   "about:blank",
+		Title:  http.StatusText(status),
+		Status: status,
+		Detail: detail,
+	}); err != nil {
+		log.Printf("encode problem: %v", err)
+	}
+}
+
 func handler(p *packer) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /pack", func(w http.ResponseWriter, r *http.Request) {
 		var req packRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "invalid request body", http.StatusBadRequest)
+			writeProblem(w, http.StatusBadRequest, "invalid request body")
 			return
 		}
 
 		if req.Quantity < 1 {
-			http.Error(w, "quantity must be at least 1", http.StatusBadRequest)
+			writeProblem(w, http.StatusBadRequest, "quantity must be at least 1")
 			return
 		}
 		if req.Quantity > p.maxQuantity {
-			http.Error(w, fmt.Sprintf("quantity must not exceed %d", p.maxQuantity), http.StatusBadRequest)
+			writeProblem(w, http.StatusBadRequest, fmt.Sprintf("quantity must not exceed %d", p.maxQuantity))
 			return
 		}
 

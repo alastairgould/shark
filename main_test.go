@@ -84,9 +84,7 @@ func TestPackRejectsQuantityAboveMax(t *testing.T) {
 
 	handler(newPacker(challengeSizes, 1000)).ServeHTTP(rec, newPackRequest(t, 1001))
 
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status: got %d, want %d", rec.Code, http.StatusBadRequest)
-	}
+	assertBadRequest(t, rec, "quantity must not exceed 1000")
 }
 
 func TestPackRejectsQuantityBelowOne(t *testing.T) {
@@ -94,9 +92,7 @@ func TestPackRejectsQuantityBelowOne(t *testing.T) {
 
 	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 0))
 
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("status: got %d, want %d", rec.Code, http.StatusBadRequest)
-	}
+	assertBadRequest(t, rec, "quantity must be at least 1")
 }
 
 func TestPackSizesFromEnv(t *testing.T) {
@@ -166,4 +162,29 @@ func decodePackResponse(t *testing.T, body io.Reader) packResponse {
 		t.Fatalf("decode response: %v", err)
 	}
 	return got
+}
+
+func assertBadRequest(t *testing.T, rec *httptest.ResponseRecorder, detail string) {
+	t.Helper()
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusBadRequest)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "application/problem+json" {
+		t.Errorf("content-type: got %q, want %q", ct, "application/problem+json")
+	}
+
+	var prob problemDetail
+	if err := json.NewDecoder(rec.Body).Decode(&prob); err != nil {
+		t.Fatalf("decode problem: %v", err)
+	}
+	if prob.Status != http.StatusBadRequest {
+		t.Errorf("status field: got %d, want %d", prob.Status, http.StatusBadRequest)
+	}
+	if prob.Title != http.StatusText(http.StatusBadRequest) {
+		t.Errorf("title: got %q, want %q", prob.Title, http.StatusText(http.StatusBadRequest))
+	}
+	if prob.Detail != detail {
+		t.Errorf("detail: got %q, want %q", prob.Detail, detail)
+	}
 }
