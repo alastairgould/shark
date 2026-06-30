@@ -22,6 +22,23 @@ func TestPackReturns200(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("status: got %d, want %d", rec.Code, http.StatusOK)
 	}
+	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
+		t.Errorf("content-type: got %q, want %q", ct, "application/json")
+	}
+}
+
+func TestPackRejectsNonPostMethod(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/pack", nil)
+
+	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Errorf("status: got %d, want %d", rec.Code, http.StatusMethodNotAllowed)
+	}
+	if allow := rec.Header().Get("Allow"); allow != http.MethodPost {
+		t.Errorf("allow: got %q, want %q", allow, http.MethodPost)
+	}
 }
 
 func TestPackCalculatesPacks(t *testing.T) {
