@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-var packSizes = []int{250, 500, 1000, 2000, 5000}
+var packSizes = []int{250, 500}
 
 type packRequest struct {
 	Quantity int `json:"quantity"`
@@ -17,21 +17,27 @@ type packResponse struct {
 	Packs map[int]int `json:"packs"`
 }
 
-// calculatePacks returns the packs needed to fulfil quantity, as size -> count.
-func calculatePacks(quantity int, sizes []int) map[int]int {
-	ordered := append([]int(nil), sizes...)
-	sort.Ints(ordered)
-
-	for _, size := range ordered {
-		if size >= quantity {
-			return map[int]int{size: 1}
-		}
+func calculatePacks(quantity int) map[int]int {
+	if quantity <= 0 || len(packSizes) == 0 {
+		return map[int]int{}
 	}
 
-	return nil
+	ordered := append([]int(nil), packSizes...)
+	sort.Sort(sort.Reverse(sort.IntSlice(ordered)))
+	smallest := ordered[len(ordered)-1]
+
+	total := ((quantity + smallest - 1) / smallest) * smallest
+
+	packs := map[int]int{}
+	for _, size := range ordered {
+		if n := total / size; n > 0 {
+			packs[size] = n
+			total -= n * size
+		}
+	}
+	return packs
 }
 
-// handler returns the HTTP handler for the application.
 func handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /pack", func(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +47,7 @@ func handler() http.Handler {
 			return
 		}
 
-		resp := packResponse{Packs: calculatePacks(req.Quantity, packSizes)}
+		resp := packResponse{Packs: calculatePacks(req.Quantity)}
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
