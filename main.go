@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-var packSizes = []int{250, 500, 1000, 2000}
+var packSizes = []int{250, 500, 1000, 2000, 5000}
 
 type packRequest struct {
 	Quantity int `json:"quantity"`
