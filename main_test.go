@@ -148,7 +148,6 @@ func TestMaxQuantityFromEnv(t *testing.T) {
 	}
 }
 
-// newPackRequest builds a POST /pack request with the given quantity as its JSON body.
 func newPackRequest(t *testing.T, quantity int) *http.Request {
 	t.Helper()
 	body, err := json.Marshal(struct {
@@ -160,7 +159,6 @@ func newPackRequest(t *testing.T, quantity int) *http.Request {
 	return httptest.NewRequest(http.MethodPost, "/pack", bytes.NewReader(body))
 }
 
-// decodePackResponse reads the JSON body into a packResponse.
 func decodePackResponse(t *testing.T, body io.Reader) packResponse {
 	t.Helper()
 	var got packResponse

@@ -30,8 +30,6 @@ func run() error {
 	return http.ListenAndServe(addr, handler(p))
 }
 
-// packSizesFromEnv reads PACK_SIZES as a comma-separated list, falling back to
-// defaultPackSizes when unset or invalid.
 func packSizesFromEnv() []int {
 	raw := os.Getenv("PACK_SIZES")
 	if raw == "" {
@@ -50,8 +48,6 @@ func packSizesFromEnv() []int {
 	return sizes
 }
 
-// maxQuantityFromEnv reads MAX_QUANTITY, falling back to defaultMaxQuantity when
-// unset or invalid.
 func maxQuantityFromEnv() int {
 	raw := os.Getenv("MAX_QUANTITY")
 	if raw == "" {
