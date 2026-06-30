@@ -12,10 +12,12 @@ import (
 
 var challengeSizes = []int{250, 500, 1000, 2000, 5000}
 
+const testMaxQuantity = 100_000
+
 func TestPackReturns200(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 1))
+	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 1))
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -44,7 +46,7 @@ func TestPackCalculatesPacks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
 
-			handler(tt.sizes).ServeHTTP(rec, newPackRequest(t, tt.quantity))
+			handler(newPacker(tt.sizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, tt.quantity))
 
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -63,7 +65,7 @@ func TestPackCalculatesPacks(t *testing.T) {
 func TestPackUsesConfiguredPackSizes(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler([]int{100, 300}).ServeHTTP(rec, newPackRequest(t, 100))
+	handler(newPacker([]int{100, 300}, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 100))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -74,6 +76,26 @@ func TestPackUsesConfiguredPackSizes(t *testing.T) {
 	want := packResponse{Packs: map[int]int{100: 1}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+	}
+}
+
+func TestPackRejectsQuantityAboveMax(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	handler(newPacker(challengeSizes, 1000)).ServeHTTP(rec, newPackRequest(t, 1001))
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status: got %d, want %d", rec.Code, http.StatusBadRequest)
+	}
+}
+
+func TestPackRejectsQuantityBelowOne(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 0))
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status: got %d, want %d", rec.Code, http.StatusBadRequest)
 	}
 }
 
