@@ -35,7 +35,7 @@ func newPacker(sizes []int, maxQuantity int) *packer {
 
 func (p *packer) calculate(quantity int) map[int]int {
 	total := quantity
-	for p.packsFor[total] == -1 {
+	for total < len(p.packsFor) && p.packsFor[total] == -1 {
 		total++
 	}
 
