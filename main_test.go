@@ -22,139 +22,39 @@ func TestPackReturns200(t *testing.T) {
 	}
 }
 
-func TestPackForQuantityOf1ReturnsSingle250Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 1))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
+func TestPackCalculatesPacks(t *testing.T) {
+	tests := []struct {
+		name     string
+		quantity int
+		want     map[int]int
+	}{
+		{"quantity 1 rounds up to one 250", 1, map[int]int{250: 1}},
+		{"quantity 250 fits exactly in one 250", 250, map[int]int{250: 1}},
+		{"quantity 251 rounds up to one 500", 251, map[int]int{500: 1}},
+		{"quantity 501 combines a 500 and a 250", 501, map[int]int{500: 1, 250: 1}},
+		{"quantity 751 rounds up to one 1000", 751, map[int]int{1000: 1}},
+		{"quantity 1751 rounds up to one 2000", 1751, map[int]int{2000: 1}},
+		{"quantity 4751 rounds up to one 5000", 4751, map[int]int{5000: 1}},
+		{"quantity 12001 combines two 5000s, a 2000 and a 250", 12001, map[int]int{5000: 2, 2000: 1, 250: 1}},
 	}
 
-	got := decodePackResponse(t, rec.Body)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := httptest.NewRecorder()
 
-	want := packResponse{Packs: map[int]int{250: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
+			handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, tt.quantity))
 
-func TestPackForQuantityOf250ReturnsSingle250Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
+			if rec.Code != http.StatusOK {
+				t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
+			}
 
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 250))
+			got := decodePackResponse(t, rec.Body)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{250: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf251ReturnsSingle500Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 251))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{500: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf501Returns500And250Packs(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 501))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{500: 1, 250: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf751ReturnsSingle1000Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 751))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{1000: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf1751ReturnsSingle2000Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 1751))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{2000: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf4751ReturnsSingle5000Pack(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 4751))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{5000: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
-	}
-}
-
-func TestPackForQuantityOf12001Returns5000sAnd2000And250(t *testing.T) {
-	rec := httptest.NewRecorder()
-
-	handler(challengeSizes).ServeHTTP(rec, newPackRequest(t, 12001))
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
-	}
-
-	got := decodePackResponse(t, rec.Body)
-
-	want := packResponse{Packs: map[int]int{5000: 2, 2000: 1, 250: 1}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+			want := packResponse{Packs: tt.want}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+			}
+		})
 	}
 }
 
