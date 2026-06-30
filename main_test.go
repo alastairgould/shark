@@ -112,6 +112,20 @@ func TestPackRejectsQuantityBelowOne(t *testing.T) {
 	assertBadRequest(t, rec, "quantity must be at least 1")
 }
 
+func TestPackRejectsOversizedBody(t *testing.T) {
+	var body bytes.Buffer
+	body.WriteString(`{"quantity":251,"padding":"`)
+	body.Write(bytes.Repeat([]byte("a"), 2<<20))
+	body.WriteString(`"}`)
+
+	req := httptest.NewRequest(http.MethodPost, "/pack", &body)
+	rec := httptest.NewRecorder()
+
+	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
+
+	assertBadRequest(t, rec, "invalid request body")
+}
+
 func TestPackSizesFromEnv(t *testing.T) {
 	tests := []struct {
 		name string

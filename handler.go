@@ -38,6 +38,8 @@ func writeProblem(w http.ResponseWriter, status int, detail string) {
 func handler(p *packer) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /pack", func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
+
 		var req packRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			writeProblem(w, http.StatusBadRequest, "invalid request body")
