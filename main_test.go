@@ -37,6 +37,23 @@ func TestPackForQuantityOf1ReturnsSingle250Pack(t *testing.T) {
 	}
 }
 
+func TestPackForQuantityOf250ReturnsSingle250Pack(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	handler().ServeHTTP(rec, newPackRequest(t, 250))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	got := decodePackResponse(t, rec.Body)
+
+	want := packResponse{Packs: map[int]int{250: 1}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+	}
+}
+
 func TestPackForQuantityOf251ReturnsSingle500Pack(t *testing.T) {
 	rec := httptest.NewRecorder()
 
@@ -117,6 +134,23 @@ func TestPackForQuantityOf4751ReturnsSingle5000Pack(t *testing.T) {
 	got := decodePackResponse(t, rec.Body)
 
 	want := packResponse{Packs: map[int]int{5000: 1}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
+	}
+}
+
+func TestPackForQuantityOf12001Returns5000sAnd2000And250(t *testing.T) {
+	rec := httptest.NewRecorder()
+
+	handler().ServeHTTP(rec, newPackRequest(t, 12001))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	got := decodePackResponse(t, rec.Body)
+
+	want := packResponse{Packs: map[int]int{5000: 2, 2000: 1, 250: 1}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("packs: got %v, want %v", got.Packs, want.Packs)
 	}
