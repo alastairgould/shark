@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sort"
 )
 
 var packSizes = []int{250, 500, 1000, 2000, 5000}
@@ -18,7 +19,16 @@ type packResponse struct {
 
 // calculatePacks returns the packs needed to fulfil quantity, as size -> count.
 func calculatePacks(quantity int, sizes []int) map[int]int {
-	return map[int]int{250: 1}
+	ordered := append([]int(nil), sizes...)
+	sort.Ints(ordered)
+
+	for _, size := range ordered {
+		if size >= quantity {
+			return map[int]int{size: 1}
+		}
+	}
+
+	return nil
 }
 
 // handler returns the HTTP handler for the application.
