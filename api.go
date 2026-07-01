@@ -35,12 +35,8 @@ func writeProblem(w http.ResponseWriter, status int, detail string) {
 	}
 }
 
-func handler(p *packer) http.Handler {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /{$}", handleIndex)
-
-	mux.HandleFunc("POST /pack", func(w http.ResponseWriter, r *http.Request) {
+func handlePack(p *packer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 
 		var req packRequest
@@ -64,6 +60,5 @@ func handler(p *packer) http.Handler {
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			log.Printf("encode response: %v", err)
 		}
-	})
-	return mux
+	}
 }

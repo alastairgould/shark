@@ -58,6 +58,13 @@ func run() error {
 	return srv.Shutdown(shutdownCtx)
 }
 
+func handler(p *packer) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /{$}", handleIndex)
+	mux.HandleFunc("POST /pack", handlePack(p))
+	return mux
+}
+
 func packSizesFromEnv() []int {
 	raw := os.Getenv("PACK_SIZES")
 	if raw == "" {
