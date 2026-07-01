@@ -22,19 +22,6 @@ type problemDetail struct {
 	Detail string `json:"detail"`
 }
 
-func validationError(w http.ResponseWriter, detail string, code int) {
-	w.Header().Set("Content-Type", "application/problem+json")
-	w.WriteHeader(code)
-	if err := json.NewEncoder(w).Encode(problemDetail{
-		Type:   "about:blank",
-		Title:  http.StatusText(code),
-		Status: code,
-		Detail: detail,
-	}); err != nil {
-		log.Printf("encode problem: %v", err)
-	}
-}
-
 func handlePack(p *packer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
@@ -60,5 +47,18 @@ func handlePack(p *packer) http.HandlerFunc {
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			log.Printf("encode response: %v", err)
 		}
+	}
+}
+
+func validationError(w http.ResponseWriter, detail string, code int) {
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(code)
+	if err := json.NewEncoder(w).Encode(problemDetail{
+		Type:   "about:blank",
+		Title:  http.StatusText(code),
+		Status: code,
+		Detail: detail,
+	}); err != nil {
+		log.Printf("encode problem: %v", err)
 	}
 }
