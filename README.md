@@ -3,7 +3,7 @@
 A small HTTP service that works out the fewest whole packs needed to fulfil an
 order, given a set of pack sizes. Comes with a small web UI and a JSON API.
 
-**Live demo:** <https://shark-51ub.onrender.com>
+**Live demo:** <https://shark.alastairgould.co.uk>
 (free hosting, so the first request after a while can take 30-60s to wake up).
 
 ## Requirements
