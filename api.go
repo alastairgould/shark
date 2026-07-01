@@ -22,13 +22,13 @@ type problemDetail struct {
 	Detail string `json:"detail"`
 }
 
-func writeProblem(w http.ResponseWriter, status int, detail string) {
+func writeBadRequest(w http.ResponseWriter, detail string) {
 	w.Header().Set("Content-Type", "application/problem+json")
-	w.WriteHeader(status)
+	w.WriteHeader(http.StatusBadRequest)
 	if err := json.NewEncoder(w).Encode(problemDetail{
 		Type:   "about:blank",
-		Title:  http.StatusText(status),
-		Status: status,
+		Title:  http.StatusText(http.StatusBadRequest),
+		Status: http.StatusBadRequest,
 		Detail: detail,
 	}); err != nil {
 		log.Printf("encode problem: %v", err)
@@ -41,16 +41,16 @@ func handlePack(p *packer) http.HandlerFunc {
 
 		var req packRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			writeProblem(w, http.StatusBadRequest, "invalid request body")
+			writeBadRequest(w, "invalid request body")
 			return
 		}
 
 		if req.Quantity < 1 {
-			writeProblem(w, http.StatusBadRequest, "quantity must be at least 1")
+			writeBadRequest(w, "quantity must be at least 1")
 			return
 		}
 		if req.Quantity > p.maxQuantity {
-			writeProblem(w, http.StatusBadRequest, fmt.Sprintf("quantity must not exceed %d", p.maxQuantity))
+			writeBadRequest(w, fmt.Sprintf("quantity must not exceed %d", p.maxQuantity))
 			return
 		}
 
