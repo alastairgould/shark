@@ -17,7 +17,7 @@ export PACK_SIZES="${PACK_SIZES:-250,500,1000,2000,5000}"
 export MAX_QUANTITY="${MAX_QUANTITY:-1000000}"
 
 echo "Building..."
-go build -o gymshark .
+go build -o shark .
 
 echo "Starting Pack Calculator"
 echo "  PORT         = $PORT"
@@ -26,4 +26,4 @@ echo "  MAX_QUANTITY = $MAX_QUANTITY"
 echo "  UI           = http://localhost:$PORT"
 echo
 
-exec ./gymshark
+exec ./shark

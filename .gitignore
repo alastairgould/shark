@@ -8,7 +8,7 @@ bin/
 dist/
 
 # Compiled app binary
-/gymshark
+/shark
 
 # Test binary, built with `go test -c`
 *.test
