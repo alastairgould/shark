@@ -37,6 +37,9 @@ func writeProblem(w http.ResponseWriter, status int, detail string) {
 
 func handler(p *packer) http.Handler {
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /{$}", handleIndex)
+
 	mux.HandleFunc("POST /pack", func(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
 
