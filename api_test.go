@@ -17,7 +17,7 @@ const testMaxQuantity = 100_000
 func TestPackReturns200(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 1))
+	handler(precomputePackingTable(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 1))
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -31,7 +31,7 @@ func TestPackRejectsNonPostMethod(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/pack", nil)
 
-	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
+	handler(precomputePackingTable(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusMethodNotAllowed {
 		t.Errorf("status: got %d, want %d", rec.Code, http.StatusMethodNotAllowed)
@@ -63,7 +63,7 @@ func TestPackCalculatesPacks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rec := httptest.NewRecorder()
 
-			handler(newPacker(tt.sizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, tt.quantity))
+			handler(precomputePackingTable(tt.sizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, tt.quantity))
 
 			if rec.Code != http.StatusOK {
 				t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -82,7 +82,7 @@ func TestPackCalculatesPacks(t *testing.T) {
 func TestPackUsesConfiguredPackSizes(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler(newPacker([]int{100, 300}, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 100))
+	handler(precomputePackingTable([]int{100, 300}, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 100))
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)
@@ -99,7 +99,7 @@ func TestPackUsesConfiguredPackSizes(t *testing.T) {
 func TestPackRejectsQuantityAboveMax(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler(newPacker(challengeSizes, 1000)).ServeHTTP(rec, newPackRequest(t, 1001))
+	handler(precomputePackingTable(challengeSizes, 1000)).ServeHTTP(rec, newPackRequest(t, 1001))
 
 	assertBadRequest(t, rec, "quantity must not exceed 1000")
 }
@@ -107,7 +107,7 @@ func TestPackRejectsQuantityAboveMax(t *testing.T) {
 func TestPackRejectsQuantityBelowOne(t *testing.T) {
 	rec := httptest.NewRecorder()
 
-	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 0))
+	handler(precomputePackingTable(challengeSizes, testMaxQuantity)).ServeHTTP(rec, newPackRequest(t, 0))
 
 	assertBadRequest(t, rec, "quantity must be at least 1")
 }
@@ -121,7 +121,7 @@ func TestPackRejectsOversizedBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/pack", &body)
 	rec := httptest.NewRecorder()
 
-	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
+	handler(precomputePackingTable(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
 
 	assertBadRequest(t, rec, "invalid request body")
 }

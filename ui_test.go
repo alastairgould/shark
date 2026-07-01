@@ -11,7 +11,7 @@ func TestIndexServesHTMLPage(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	handler(newPacker(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
+	handler(precomputePackingTable(challengeSizes, testMaxQuantity)).ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want %d", rec.Code, http.StatusOK)

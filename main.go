@@ -28,7 +28,7 @@ func run() error {
 		addr = ":" + port
 	}
 
-	p := newPacker(packSizesFromEnv(), maxQuantityFromEnv())
+	p := precomputePackingTable(packSizesFromEnv(), maxQuantityFromEnv())
 
 	srv := &http.Server{
 		Addr:              addr,

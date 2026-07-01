@@ -8,7 +8,7 @@ type packer struct {
 	lastSize    []int
 }
 
-func newPacker(sizes []int, maxQuantity int) *packer {
+func precomputePackingTable(sizes []int, maxQuantity int) *packer {
 	upper := maxQuantity + slices.Max(sizes)
 
 	packsFor := make([]int, upper+1)
